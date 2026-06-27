@@ -1,8 +1,5 @@
-import type {
-  ImageSizeToken,
-  VisionaryImageFields,
-  VisionaryImageOptions,
-} from "visionary-url";
+import type { BlurhashUrlFields, BlurhashUrlOptions } from "blurhash-url";
+import type { ImageSizeToken } from "blurhash-url/constants";
 
 declare global {
   interface Window {
@@ -10,7 +7,7 @@ declare global {
   }
 }
 
-export interface ImageState extends VisionaryImageFields {
+export interface ImageState extends BlurhashUrlFields {
   /** Aspect ratio of the image as a percentage, applied as padding-top */
   arPaddingTop?: string;
 
@@ -31,7 +28,7 @@ export interface ImageState extends VisionaryImageFields {
 }
 
 export interface ImageStateConfig
-  extends Pick<VisionaryImageOptions, "debug" | "endpoint" | "size"> {
+  extends Pick<BlurhashUrlOptions, "debug" | "endpoint" | "size"> {
   /** Disable rendering of the blur (canvas) layer */
   disableBlurLayer?: boolean;
   /** Disable rendering of the image layer */
@@ -51,4 +48,4 @@ export interface InitOptions {
   root?: Element;
 }
 
-export type { ImageSizeToken, VisionaryImageFields, VisionaryImageOptions };
+export type { BlurhashUrlFields, BlurhashUrlOptions, ImageSizeToken };

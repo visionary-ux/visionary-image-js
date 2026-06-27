@@ -1,4 +1,4 @@
-import { ImageSizeToken } from "visionary-url";
+import { ImageSizeToken } from "blurhash-url/constants";
 
 /** Placeholder div background-color alpha channel */
 export const BG_ALPHA = 0.7;

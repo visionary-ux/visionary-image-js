@@ -1,11 +1,10 @@
 import {
-  generateVisionaryUrl,
-  ImageSizeToken,
+  generateBlurhashUrl,
   isBase64UrlEncoded,
   parseVisionaryCode,
   parseVisionaryString,
-} from "visionary-url";
-import { IMAGE_SIZES } from "visionary-url/constants";
+} from "blurhash-url";
+import { IMAGE_SIZES, ImageSizeToken } from "blurhash-url/constants";
 
 import { BG_ALPHA, CANVAS_SIZE, DEFAULT_IMAGE_SIZE } from "./constants";
 import { logDebug } from "./logger";
@@ -26,7 +25,7 @@ import {
  * - /image/{code}/{options}/filename.jpg
  * - Just the code itself
  *
- * Valid formats for visionary-url:
+ * Valid formats for blurhash-url:
  * - /image/[visionaryCode]/filename.ext
  * - /image/[visionaryCode]/[options]/filename.ext
  */
@@ -233,7 +232,7 @@ export const renderVisionaryHTML = (
   }
   // if `src` isn't a URL and `url` field is a file ID, generate a URL
   else if (!createUrl(src) && isBase64UrlEncoded(fields.url)) {
-    const generatedUrl = generateVisionaryUrl(fields, {
+    const generatedUrl = generateBlurhashUrl(fields, {
       endpoint,
       size: imageSize,
     });
