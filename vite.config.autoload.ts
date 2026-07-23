@@ -8,7 +8,7 @@ export default defineConfig({
   build: {
     emptyOutDir: false,
     lib: {
-      entry: resolve(__dirname, "src/autoload.ts"),
+      entry: resolve(__dirname, "src/lib/autoload.ts"),
       fileName: () => "visionary-autoload.js",
       formats: ["iife"],
       name: "VisionaryAutoload",
