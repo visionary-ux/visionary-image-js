@@ -3,9 +3,6 @@
   "version": "1.0.0-pre.0",
   "description": "Framework-agnostic client-side enhancement for Visionary images with blurhash placeholders.",
   "type": "module",
-  "engines": {
-    "node": "24.x"
-  },
   "main": "./dist/visionary-image-js.cjs",
   "module": "./dist/visionary-image-js.js",
   "types": "./dist/visionary-image-js.d.ts",
