@@ -3,17 +3,28 @@
   "version": "1.0.0",
   "description": "Framework-agnostic client-side enhancement for Visionary images with blurhash placeholders.",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "main": "./dist/visionary-image-js.cjs",
   "module": "./dist/visionary-image-js.js",
   "types": "./dist/visionary-image-js.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/visionary-image-js.js",
-      "require": "./dist/visionary-image-js.cjs",
-      "types": "./dist/visionary-image-js.d.ts"
+      "import": {
+        "types": "./dist/visionary-image-js.d.ts",
+        "default": "./dist/visionary-image-js.js"
+      },
+      "require": {
+        "types": "./dist/visionary-image-js.d.cts",
+        "default": "./dist/visionary-image-js.cjs"
+      }
     },
     "./autoload": "./dist/visionary-autoload.js"
   },
+  "sideEffects": [
+    "./dist/visionary-autoload.js"
+  ],
   "files": [
     "dist/",
     "package.json",
@@ -23,7 +34,9 @@
     "build": "npm run clean && tsc --noEmit && vite build && vite build --config vite.config.autoload.ts",
     "clean": "rimraf dist/",
     "dev": "vite",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "blurhash-url": "^1.4.0",
@@ -31,12 +44,15 @@
     "visionary-base64url": "^0.1.4"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.58.11",
     "@types/node": "24.13.2",
+    "@vitest/coverage-v8": "4.1.10",
+    "jsdom": "^29.1.1",
     "rimraf": "5.0.10",
     "typescript": "5.5.4",
-    "vite": "5.4.11",
-    "vite-plugin-dts": "3.9.1",
-    "vitest": "2.0.5"
+    "unplugin-dts": "^1.0.3",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
   },
   "license": "ISC",
   "keywords": [
