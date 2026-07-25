@@ -21,6 +21,13 @@ const renderToCanvas = (
   debug: boolean
 ): void => {
   const pixels = decodeWithCache(hash, size, punch);
+  if (!pixels) {
+    if (debug) {
+      logWarn("Could not decode blurhash:", hash);
+    }
+    return;
+  }
+
   const ctx = canvas.getContext("2d");
 
   if (!ctx) {

@@ -1,12 +1,6 @@
 import type { BlurhashUrlFields, BlurhashUrlOptions } from "blurhash-url";
 import type { ImageSizeToken } from "blurhash-url/constants";
 
-declare global {
-  interface Window {
-    V7Y_PIXEL_CACHE?: Map<string, Uint8ClampedArray>;
-  }
-}
-
 export interface ImageState extends BlurhashUrlFields {
   /** Aspect ratio of the image as a percentage, applied as padding-top */
   arPaddingTop?: string;

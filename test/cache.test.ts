@@ -34,4 +34,11 @@ describe("pixel cache", () => {
 
     expect(getPixelCache().size).toBe(0);
   });
+
+  test("returns null when blurhash decoding fails", () => {
+    expect(
+      decodeWithCache(TEST_BLURHASH, Number.POSITIVE_INFINITY, 1)
+    ).toBeNull();
+    expect(isCached(TEST_BLURHASH, Number.POSITIVE_INFINITY, 1)).toBe(false);
+  });
 });
