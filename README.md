@@ -1,6 +1,6 @@
 # visionary-image-js
 
-Framework-agnostic client-side enhancement for Visionary images with blurhash placeholders.
+Framework-agnostic rendering and client-side enhancement for Visionary images with Blurhash placeholders.
 
 ## Installation
 
@@ -8,32 +8,37 @@ Framework-agnostic client-side enhancement for Visionary images with blurhash pl
 npm install visionary-image-js
 ```
 
-## Quick Start (Zero Config)
+## Quick start
 
-Just add the auto-init script to your HTML:
+Add the auto-initializing script to your HTML:
 
 ```html
 <script src="https://unpkg.com/visionary-image-js/dist/visionary-autoload.js"></script>
 ```
 
-That's it! The script auto-initializes all `[data-visionary]` elements on page load.
+The script initializes all `[data-visionary]` elements when the DOM is ready.
 
-### Options via data attributes
+### Autoload options
+
+Configure autoload behavior with attributes on the script:
 
 ```html
 <!-- Enable debug logging -->
-<script src="visionary-autoload.js" data-debug></script>
+<script
+  src="https://unpkg.com/visionary-image-js/dist/visionary-autoload.js"
+  data-debug
+></script>
 
 <!-- Auto-init new elements (for SPAs) -->
-<script src="visionary-autoload.js" data-observe></script>
-
-<!-- Both -->
-<script src="visionary-autoload.js" data-debug data-observe></script>
+<script
+  src="https://unpkg.com/visionary-image-js/dist/visionary-autoload.js"
+  data-observe
+></script>
 ```
 
 ## Usage
 
-### HTML Structure
+### HTML structure
 
 Render your images with `data-visionary` and `data-blurhash` attributes:
 
@@ -48,7 +53,7 @@ Render your images with `data-visionary` and `data-blurhash` attributes:
 </div>
 ```
 
-### Initialize on Page Load
+### Initialize on page load
 
 ```typescript
 import { initVisionaryImages } from "visionary-image-js";
@@ -66,7 +71,7 @@ For single-page applications where elements are dynamically added:
 ```typescript
 import { observeVisionaryImages } from "visionary-image-js";
 
-// Start observing - initializes existing and future elements
+// Initialize existing elements and observe future additions
 const observer = observeVisionaryImages();
 
 // Later, to stop observing:
@@ -84,7 +89,7 @@ initVisionaryImages({
 });
 ```
 
-### SSR Rendering (Hono, Express, etc.)
+### SSR rendering (Hono, Express, etc.)
 
 Generate HTML strings server-side:
 
@@ -98,7 +103,7 @@ const { html, state } = renderVisionaryHTML(visionaryUrl, {
 });
 
 // html is a complete <div data-visionary>...</div> string
-// state contains parsed aspectRatio, backgroundColor, etc.
+// state contains parsed values such as aspectRatio and backgroundColor
 ```
 
 ## API
@@ -125,7 +130,7 @@ Options:
 
 ### `computeImageState(src, options?)`
 
-Parse a Visionary URL and compute image state (dimensions, background color, decoded pixels).
+Parse a Visionary URL and compute its dimensions, background color, source, and browser-side decoded pixels.
 
 ### `decodeWithCache(hash, size?, punch?)`
 
@@ -137,11 +142,11 @@ Clear the global pixel cache.
 
 ## Global Cache
 
-Decoded blurhash pixels are cached on `window.V7Y_PIXEL_CACHE`. This ensures:
+In the browser, decoded BlurHash pixels are cached on `window.V7Y_PIXEL_CACHE`. This ensures:
 
-- Same image on a page doesn't decode twice
+- The same image on a page isn't decoded twice
 - Cache is shared across multiple bundle copies
-- Memory is managed by the browser
+- The cache can be explicitly emptied with `clearCache()`
 
 ## Related packages
 
