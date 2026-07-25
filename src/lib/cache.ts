@@ -2,11 +2,22 @@ import { decodeBlurHash } from "fast-blurhash";
 
 import { BLURHASH_PUNCH, CANVAS_SIZE } from "./constants";
 
+declare global {
+  interface Window {
+    V7Y_PIXEL_CACHE?: Map<string, Uint8ClampedArray>;
+  }
+}
+
+const ssrPixelCache = new Map<string, Uint8ClampedArray>();
+
 /**
  * Get the global pixel cache, creating it if needed.
  * Cache is stored on window.V7Y_PIXEL_CACHE for cross-bundle sharing.
  */
 export const getPixelCache = (): Map<string, Uint8ClampedArray> => {
+  if (typeof window === "undefined") {
+    return ssrPixelCache;
+  }
   if (!window.V7Y_PIXEL_CACHE) {
     window.V7Y_PIXEL_CACHE = new Map();
   }
@@ -30,7 +41,7 @@ export const decodeWithCache = (
   hash: string,
   size: number = CANVAS_SIZE,
   punch: number = BLURHASH_PUNCH
-): Uint8ClampedArray => {
+): Uint8ClampedArray | null => {
   const cache = getPixelCache();
   const key = getCacheKey(hash, size, punch);
 
@@ -39,9 +50,13 @@ export const decodeWithCache = (
     return cached;
   }
 
-  const pixels = decodeBlurHash(hash, size, size, punch);
-  cache.set(key, pixels);
-  return pixels;
+  try {
+    const pixels = decodeBlurHash(hash, size, size, punch);
+    cache.set(key, pixels);
+    return pixels;
+  } catch {
+    return null;
+  }
 };
 
 /**
@@ -60,7 +75,9 @@ export const isCached = (
  * Clear the pixel cache
  */
 export const clearCache = (): void => {
-  if (window.V7Y_PIXEL_CACHE) {
+  if (typeof window === "undefined") {
+    ssrPixelCache.clear();
+  } else if (window.V7Y_PIXEL_CACHE) {
     window.V7Y_PIXEL_CACHE.clear();
   }
 };

@@ -1,12 +1,11 @@
-/// <reference types="vitest" />
-
 import { resolve } from "path";
-import { defineConfig } from "vite";
-import dts from "vite-plugin-dts";
+import dts from "unplugin-dts/vite";
+import { defineConfig } from "vitest/config";
 
 // Main library build
 export default defineConfig({
   build: {
+    target: "es2015",
     emptyOutDir: false,
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
@@ -18,7 +17,8 @@ export default defineConfig({
   },
   plugins: [
     dts({
-      rollupTypes: true,
+      bundleTypes: true,
+      outDirs: ["dist", { dir: "dist", moduleFormat: "cjs" }],
     }),
   ],
   test: {

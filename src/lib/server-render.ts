@@ -1,11 +1,9 @@
 import {
-  generateVisionaryUrl,
-  ImageSizeToken,
+  generateBlurhashUrl,
   isBase64UrlEncoded,
-  parseVisionaryCode,
   parseVisionaryString,
-} from "visionary-url";
-import { IMAGE_SIZES } from "visionary-url/constants";
+} from "blurhash-url";
+import { IMAGE_SIZES, ImageSizeToken } from "blurhash-url/constants";
 
 import { BG_ALPHA, CANVAS_SIZE, DEFAULT_IMAGE_SIZE } from "./constants";
 import { logDebug } from "./logger";
@@ -19,56 +17,20 @@ import {
 } from "./util";
 
 /**
- * Extract Visionary code from various URL formats:
- * - https://example.com/image/{code}/filename.jpg
- * - https://example.com/image/{code}/{options}/filename.jpg
- * - /image/{code}/filename.jpg
- * - /image/{code}/{options}/filename.jpg
- * - Just the code itself
- *
- * Valid formats for visionary-url:
- * - /image/[visionaryCode]/filename.ext
- * - /image/[visionaryCode]/[options]/filename.ext
+ * `blurhash-url` expects an absolute URL, so path-only inputs are parsed
+ * against a temporary origin while preserving all supported option tokens.
  */
-const extractVisionaryCode = (input: string): string | null => {
-  // Trim whitespace from input
-  const trimmed = input.trim();
-
-  if (!trimmed) {
+const parsePathOnlyVisionaryUrl = (input: string) => {
+  if (!input.startsWith("/")) {
     return null;
   }
 
-  // Check if input is a full URL (has protocol)
-  const hasProtocol = /^https?:\/\//i.test(trimmed);
-
-  if (hasProtocol) {
-    // Parse as full URL
-    try {
-      const url = new URL(trimmed);
-      const segments = url.pathname.split("/").filter(Boolean);
-      // Expected: ["image", code, ...] or [code, ...]
-      const codeIndex = segments[0] === "image" ? 1 : 0;
-      if (segments[codeIndex]) {
-        return segments[codeIndex];
-      }
-    } catch {
-      // Invalid URL
-    }
-  } else if (trimmed.startsWith("/")) {
-    // Path format: /image/{code}/filename or /image/{code}/{options}/filename
-    const segments = trimmed.split("/").filter(Boolean);
-    // Expected: ["image", code, filename] or ["image", code, options, filename]
-    if (segments[0] === "image" && segments[1]) {
-      return segments[1];
-    }
-    // Fallback: first segment after leading slash
-    if (segments[0]) {
-      return segments[0];
-    }
+  try {
+    const absoluteUrl = new URL(input, "https://visionary.invalid");
+    return parseVisionaryString(absoluteUrl.toString());
+  } catch {
+    return null;
   }
-
-  // Return as-is (might be just the code)
-  return trimmed;
 };
 
 export interface RenderOptions {
@@ -157,20 +119,11 @@ export const renderVisionaryHTML = (
     logDebug("parseVisionaryString result:", visionaryData);
   }
 
-  // If that fails, try extracting code from URL path
+  // `blurhash-url` requires absolute URLs, so normalize path-only inputs.
   if (!visionaryData) {
-    const code = extractVisionaryCode(src);
+    visionaryData = parsePathOnlyVisionaryUrl(src);
     if (debug) {
-      logDebug("extractVisionaryCode result:", code);
-    }
-    if (code) {
-      const fields = parseVisionaryCode(code);
-      if (debug) {
-        logDebug("parseVisionaryCode result:", fields);
-      }
-      if (fields) {
-        visionaryData = { fields, options: {} };
-      }
+      logDebug("parsePathOnlyVisionaryUrl result:", visionaryData);
     }
   }
 
@@ -231,9 +184,13 @@ export const renderVisionaryHTML = (
   if (urlFieldAsURL) {
     resolvedSrc = urlFieldAsURL.toString();
   }
-  // if `src` isn't a URL and `url` field is a file ID, generate a URL
+  // Preserve valid path-only URLs, including all serving option tokens.
+  else if (src.startsWith("/")) {
+    resolvedSrc = src;
+  }
+  // If `src` is a Visionary Code and `url` is a file ID, generate a URL.
   else if (!createUrl(src) && isBase64UrlEncoded(fields.url)) {
-    const generatedUrl = generateVisionaryUrl(fields, {
+    const generatedUrl = generateBlurhashUrl(fields, {
       endpoint,
       size: imageSize,
     });
@@ -242,7 +199,11 @@ export const renderVisionaryHTML = (
     }
   }
   if (endpoint) {
-    resolvedSrc = swapUrlOrigin(resolvedSrc, endpoint);
+    const endpointUrl = createUrl(endpoint);
+    resolvedSrc =
+      resolvedSrc.startsWith("/") && endpointUrl
+        ? new URL(resolvedSrc, endpointUrl).toString()
+        : swapUrlOrigin(resolvedSrc, endpoint);
   }
 
   if (debug) {

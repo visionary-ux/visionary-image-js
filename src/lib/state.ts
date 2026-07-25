@@ -1,9 +1,9 @@
 import {
-  generateVisionaryUrl,
+  generateBlurhashUrl,
   isBase64UrlEncoded,
   parseVisionaryString,
-} from "visionary-url";
-import { IMAGE_SIZES } from "visionary-url/constants";
+} from "blurhash-url";
+import { IMAGE_SIZES } from "blurhash-url/constants";
 
 import { decodeWithCache } from "./cache";
 import {
@@ -90,7 +90,7 @@ export const computeImageState = (
     }
     // if `imageSrc` isn't a URL and `url` field is a file ID, generate a URL for `imageState.src`
     else if (!createUrl(imageSrc) && isBase64UrlEncoded(fields.url)) {
-      const generatedUrl = generateVisionaryUrl(fields, {
+      const generatedUrl = generateBlurhashUrl(fields, {
         endpoint: userConfig.endpoint,
         size: imageSize,
       });

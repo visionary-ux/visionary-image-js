@@ -41,9 +41,9 @@ export { canvasStyles, containerStyles, imageStyles } from "./style";
 
 // Types
 export type {
+  BlurhashUrlFields,
+  BlurhashUrlOptions,
   ImageState,
   ImageStateConfig,
   InitOptions,
-  VisionaryImageFields,
-  VisionaryImageOptions,
 } from "./type";
