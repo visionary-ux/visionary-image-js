@@ -143,6 +143,13 @@ Decoded blurhash pixels are cached on `window.V7Y_PIXEL_CACHE`. This ensures:
 - Cache is shared across multiple bundle copies
 - Memory is managed by the browser
 
+## Related packages
+
+| Package                                                              | Use for                                                            |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **`visionary-image-js`** (this package)                              | Zero-config `<script>` / CDN, or framework-agnostic SSR HTML       |
+| [`visionary-image`](https://github.com/visionary-ux/visionary-image) | React apps (`<Image />`), or the `<visionary-image>` web component |
+
 ## License
 
 ISC
