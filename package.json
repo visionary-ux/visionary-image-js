@@ -1,6 +1,6 @@
 {
   "name": "visionary-image-js",
-  "version": "1.0.0",
+  "version": "1.0.0-pre.0",
   "description": "Framework-agnostic client-side enhancement for Visionary images with blurhash placeholders.",
   "type": "module",
   "engines": {
@@ -48,7 +48,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "npm run clean && tsc --noEmit && vite build && vite build --config vite.config.autoload.ts",
+    "build": "pnpm run clean && tsc --noEmit && vite build && vite build --config vite.config.autoload.ts",
     "clean": "rimraf dist/",
     "dev": "vite",
     "test": "vitest run",
@@ -58,8 +58,7 @@
   },
   "dependencies": {
     "blurhash-url": "^1.4.0",
-    "fast-blurhash": "1.2.0",
-    "visionary-base64url": "^0.1.4"
+    "fast-blurhash": "1.2.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
@@ -73,6 +72,12 @@
     "vite": "8.1.5",
     "vitest": "4.1.10"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/visionary-ux/visionary-image-js.git"
+  },
+  "homepage": "https://github.com/visionary-ux/visionary-image-js#readme",
+  "packageManager": "pnpm@11.5.1",
   "license": "ISC",
   "keywords": [
     "blurhash",
