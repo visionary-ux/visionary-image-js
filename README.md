@@ -1,5 +1,7 @@
 # visionary-image-js
 
+[![NPM version](https://img.shields.io/npm/v/visionary-image-js?color=beige)](https://www.npmjs.com/package/visionary-image-js) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/visionary-ux/visionary-image-js/.github%2Fworkflows%2Fci-cd-workflow.yml?branch=master)](https://github.com/visionary-ux/visionary-image-js/actions) [![NPM bundle size](https://img.shields.io/bundlephobia/minzip/visionary-image-js?color=blue)](https://bundlephobia.com/package/visionary-image-js) [![NPM Downloads](https://img.shields.io/npm/d18m/visionary-image-js?color=lightgray)](https://www.npmjs.com/package/visionary-image-js?activeTab=versions)
+
 Framework-agnostic rendering and client-side enhancement for Visionary images with Blurhash placeholders.
 
 ## Installation
