@@ -1,6 +1,6 @@
 {
   "name": "visionary-image-js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Framework-agnostic client-side enhancement for Visionary images with blurhash placeholders.",
   "type": "module",
   "main": "./dist/visionary-image-js.cjs",

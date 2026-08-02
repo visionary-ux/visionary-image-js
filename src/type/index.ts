@@ -32,14 +32,26 @@ export interface ImageStateConfig
 }
 
 export interface InitOptions {
+  /** Background color alpha channel (default: 0.7) */
+  bgColorAlpha?: number;
   /** Canvas size for blurhash rendering (default: 24) */
   canvasSize?: number;
   /** Enable debug logging */
   debug?: boolean;
+  /** Custom endpoint for image URLs */
+  endpoint?: string;
   /** Blurhash punch parameter (default: 1) */
   punch?: number;
   /** Root element to search within (default: document.body) */
   root?: Element;
+  /** CSS selector indicating which images to render as Visionary images (default: "img") */
+  target?: string;
+  /**
+   * Paint blurhash canvases immediately in the current task instead of deferring
+   * paint work into the next `requestAnimationFrame` (default: false).
+   *
+   * Useful for above-the-fold images where you want the blurhash placeholder to show up immediately */
+  eagerCanvasPaint?: boolean;
 }
 
 export type { BlurhashUrlFields, BlurhashUrlOptions, ImageSizeToken };

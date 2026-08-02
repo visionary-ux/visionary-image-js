@@ -3,14 +3,19 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import { clearCache } from "../src/lib/cache";
 import { computeImageState } from "../src/lib/state";
-import { TEST_VISIONARY_CODE, TEST_VISIONARY_URL } from "./fixtures";
+import {
+  TEST_EMBEDDED_SOURCE_URL,
+  TEST_VISIONARY_CODE,
+  TEST_VISIONARY_CODE_WITH_URL,
+  TEST_VISIONARY_URL,
+} from "./fixtures";
 
 describe(computeImageState.name, () => {
   beforeEach(() => {
     clearCache();
   });
 
-  test("computes dimensions, color, and pixels from a Visionary URL", () => {
+  test("computes dimensions, color, and pixels from a Blurhash URL", () => {
     const state = computeImageState(TEST_VISIONARY_URL);
 
     expect(state).toMatchObject({
@@ -34,6 +39,20 @@ describe(computeImageState.name, () => {
     expect(state?.maxWidth).toBe(228);
   });
 
+  test("prefers an absolute URL embedded in the `url` field", () => {
+    const state = computeImageState(TEST_VISIONARY_CODE_WITH_URL);
+
+    expect(state?.src).toBe(TEST_EMBEDDED_SOURCE_URL);
+  });
+
+  test("embedded `url` field overrides the input Blurhash URL", () => {
+    const state = computeImageState(
+      `https://visionary.test/image/${TEST_VISIONARY_CODE_WITH_URL}/sm/image.jpg`
+    );
+
+    expect(state?.src).toBe(TEST_EMBEDDED_SOURCE_URL);
+  });
+
   test("applies endpoint and display overrides", () => {
     const state = computeImageState(
       TEST_VISIONARY_CODE,
@@ -52,7 +71,7 @@ describe(computeImageState.name, () => {
   });
 
   test.each(["", "not_a_url", "https://example.test/image.jpg"])(
-    "returns null for non-Visionary input %j",
+    "returns null for non-Blurhash URL input %j",
     (input) => {
       expect(computeImageState(input)).toBeNull();
     }

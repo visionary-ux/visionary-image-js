@@ -1,14 +1,76 @@
 import { decodeWithCache } from "./cache";
-import { BLURHASH_PUNCH, CANVAS_SIZE } from "./constants";
+import { BG_ALPHA, BLURHASH_PUNCH, CANVAS_SIZE } from "./constants";
 import { logDebug, logWarn } from "./logger";
+import { computeImageState } from "./state";
+import {
+  buildCanvasStyle,
+  buildContainerStyle,
+  buildImageStyle,
+} from "../style";
 import type { InitOptions } from "../type";
+import { createUrl } from "./util";
 
 /** Data attribute marking an element as a Visionary image container */
 const ATTR_VISIONARY = "data-visionary";
-/** Data attribute marking an element as initialized */
-const ATTR_INITIALIZED = "data-v7y-init";
-/** Data attribute containing the blurhash string */
-const ATTR_BLURHASH = "data-blurhash";
+/** Shared ownership marker across React and JS renderers */
+const ATTR_OWNER = "data-v7y";
+/** Data attribute opting an image out of decorating */
+const ATTR_SKIP = "data-visionary-skip";
+
+/** Images are decorated unless the caller narrows this */
+const DEFAULT_TARGET = "img";
+
+/**
+ * Cache of each image's last examined src. Tracked off-DOM so repeated observer
+ * passes don't re-parse unchanged URLs, and so pages full of ordinary images
+ * aren't littered with marker attributes.
+ */
+const examinedImages = new WeakMap<HTMLImageElement, string>();
+const paintedContainerSources = new WeakMap<Element, string>();
+
+/** Invalid `target` selectors already logged */
+const warnedTargets = new Set<string>();
+
+interface ResolvedOptions {
+  bgColorAlpha: number;
+  canvasSize: number;
+  debug: boolean;
+  endpoint?: string;
+  punch: number;
+  target: string;
+  eagerCanvasPaint: boolean;
+}
+
+const resolveOptions = (options: InitOptions): ResolvedOptions => ({
+  bgColorAlpha: options.bgColorAlpha ?? BG_ALPHA,
+  canvasSize: options.canvasSize ?? CANVAS_SIZE,
+  debug: options.debug ?? false,
+  endpoint: options.endpoint,
+  punch: options.punch ?? BLURHASH_PUNCH,
+  target: options.target ?? DEFAULT_TARGET,
+  eagerCanvasPaint: options.eagerCanvasPaint ?? false,
+});
+
+/**
+ * Paint the collected containers, either synchronously (for first-paint
+ * reliability) or batched into the next frame.
+ */
+const paintPending = (pending: Element[], options: ResolvedOptions): void => {
+  if (pending.length === 0) {
+    return;
+  }
+  const paint = () =>
+    pending.forEach((element) => initElement(element, options));
+  if (options.eagerCanvasPaint) {
+    paint();
+  } else {
+    requestAnimationFrame(paint);
+  }
+};
+
+/** `document.body` is null when the script runs from `<head>` */
+const resolveRoot = (root?: Element): Element =>
+  root ?? document.body ?? document.documentElement;
 
 /**
  * Render blurhash pixels to a canvas element
@@ -42,28 +104,36 @@ const renderToCanvas = (
   ctx.putImageData(imageData, 0, 0);
 };
 
+const getImageSource = (image: HTMLImageElement): string | null => {
+  const srcAttr = image.getAttribute("src");
+  if (!srcAttr) {
+    return null;
+  }
+  return image.src || srcAttr;
+};
+
+const getContainerImageSource = (container: Element): string | null => {
+  const image = container.querySelector("img") as HTMLImageElement | null;
+  if (!image) {
+    return null;
+  }
+  return getImageSource(image);
+};
+
+const shouldPaintContainer = (container: Element): boolean => {
+  const src = getContainerImageSource(container);
+  if (!src) {
+    return false;
+  }
+  return paintedContainerSources.get(container) !== src;
+};
+
 /**
  * Initialize a single Visionary image element.
  * Finds the canvas within the element and renders the blurhash.
  */
-const initElement = (
-  element: Element,
-  options: Required<Omit<InitOptions, "root">>
-): void => {
-  const { canvasSize, debug, punch } = options;
-
-  // Skip if already initialized
-  if (element.hasAttribute(ATTR_INITIALIZED)) {
-    return;
-  }
-
-  const hash = element.getAttribute(ATTR_BLURHASH);
-  if (!hash) {
-    if (debug) {
-      logWarn("Element missing data-blurhash:", element);
-    }
-    return;
-  }
+const initElement = (element: Element, options: ResolvedOptions): void => {
+  const { bgColorAlpha, canvasSize, debug, endpoint, punch } = options;
 
   const canvas = element.querySelector("canvas") as HTMLCanvasElement | null;
   if (!canvas) {
@@ -73,60 +143,232 @@ const initElement = (
     return;
   }
 
-  // Render blurhash to canvas
-  renderToCanvas(canvas, hash, canvasSize, punch, debug);
+  const imageSrc = getContainerImageSource(element);
+  if (!imageSrc) {
+    if (debug) {
+      logWarn("Element missing image src:", element);
+    }
+    return;
+  }
 
-  // Mark as initialized
-  element.setAttribute(ATTR_INITIALIZED, "true");
+  if (paintedContainerSources.get(element) === imageSrc) {
+    return;
+  }
+
+  const state = computeImageState(
+    imageSrc,
+    { debug, disableBlurLayer: true, endpoint },
+    bgColorAlpha,
+    punch
+  );
+  if (!state?.blurhash) {
+    if (debug) {
+      logWarn("blurhash data not found in URL:", imageSrc);
+    }
+    return;
+  }
+
+  // Render blurhash to canvas
+  renderToCanvas(canvas, state.blurhash, canvasSize, punch, debug);
+  // Mark container as initialized
+  element.setAttribute(ATTR_OWNER, "");
+  paintedContainerSources.set(element, imageSrc);
 
   if (debug) {
-    logDebug("Initialized element:", element);
+    logDebug("Element initialized", element);
   }
 };
 
 /**
- * Initialize all Visionary image elements within a root element.
- * Uses requestAnimationFrame to batch canvas rendering.
+ * Find candidate images to check for Blurhash URLs.
+ * By default, only `IMG` nodes are considered candidates.
+ */
+const collectCandidateImages = (
+  root: Element,
+  target: string
+): HTMLImageElement[] => {
+  const images = new Set<HTMLImageElement>();
+  try {
+    if (root.tagName === "IMG" && root.matches(target)) {
+      images.add(root as HTMLImageElement);
+    }
+    root.querySelectorAll(target).forEach((element) => {
+      if (element.tagName === "IMG") {
+        images.add(element as HTMLImageElement);
+      }
+    });
+  } catch {
+    if (!warnedTargets.has(target)) {
+      warnedTargets.add(target);
+      logWarn("`target` selector is invalid", target);
+    }
+  }
+
+  return Array.from(images);
+};
+
+/**
+ * Decorate a bare `<img>` whose `src` carries a Visionary Code into the layered container
+ * that `renderVisionaryHTML` renders.
+ *
+ * The author's `src` and `loading` attributes are preserved. Rhe image is already in flight
+ * by the time this runs, so reassigning src would throw away that request.
+ *
+ * @returns The container awaiting a blurhash paint, or null if there's nothing to paint
+ */
+const decorateImage = (
+  image: HTMLImageElement,
+  options: ResolvedOptions
+): Element | null => {
+  const { bgColorAlpha, canvasSize, debug, endpoint, punch } = options;
+  const srcAttr = image.getAttribute("src");
+  if (!srcAttr) {
+    return null;
+  }
+  // The `src` property resolves path-only markup to an absolute URL.
+  const normalizedSrc = image.src || srcAttr;
+  const lastExaminedSrc = examinedImages.get(image);
+  if (lastExaminedSrc === normalizedSrc) {
+    return null;
+  }
+  examinedImages.set(image, normalizedSrc);
+
+  if (image.hasAttribute(ATTR_SKIP)) {
+    return null;
+  }
+
+  // Omit images already owned by another renderer or already wrapped.
+  if (
+    image.parentElement?.closest(`[${ATTR_OWNER}]`) ||
+    image.parentElement?.closest(`[${ATTR_VISIONARY}]`)
+  ) {
+    return null;
+  }
+
+  // Fast reject: Blurhash URL paths always begin with `/image/` (not merely contain it).
+  const srcUrl = createUrl(normalizedSrc);
+  if (!srcUrl?.pathname.startsWith("/image/")) {
+    return null;
+  }
+
+  const state = computeImageState(
+    normalizedSrc,
+    { debug, disableBlurLayer: true, endpoint },
+    bgColorAlpha,
+    punch
+  );
+
+  if (!state) {
+    if (debug) {
+      logDebug("No Blurhash URL data in src:", image.src);
+    }
+    return null;
+  }
+
+  const container = document.createElement("div");
+  container.setAttribute(ATTR_OWNER, "");
+  container.setAttribute(ATTR_VISIONARY, "");
+  container.setAttribute("style", buildContainerStyle(state));
+  image.before(container);
+
+  if (state.blurhash) {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+    canvas.setAttribute("style", buildCanvasStyle());
+    container.append(canvas);
+  }
+
+  const authorStyle = image.getAttribute("style");
+  image.setAttribute(
+    "style",
+    [authorStyle, buildImageStyle()].filter(Boolean).join("; ")
+  );
+  container.append(image);
+
+  if (debug) {
+    logDebug("Image decorated", container);
+  }
+
+  // Without a blurhash there's no canvas to paint, but the container still
+  // reserves the layout box and paints the background color.
+  if (!state.blurhash) {
+    paintedContainerSources.set(container, normalizedSrc);
+    return null;
+  }
+
+  return container;
+};
+
+/**
+ * Collect containers awaiting a blurhash paint from `node` and its descendants, decorating
+ * any bare images with Blurhash URLs found along the way.
+ */
+const collectPending = (node: Element, options: ResolvedOptions): Element[] => {
+  const pending: Element[] = [];
+  const containers = new Set<Element>();
+
+  if (node.hasAttribute(ATTR_VISIONARY)) {
+    containers.add(node);
+  }
+  node
+    .querySelectorAll(`[${ATTR_VISIONARY}]`)
+    .forEach((element) => containers.add(element));
+
+  const closestContainer = node.closest(`[${ATTR_VISIONARY}]`);
+  if (closestContainer) {
+    containers.add(closestContainer);
+  }
+
+  containers.forEach((element) => {
+    // Only non-image nodes are valid SSR containers, and only when the source
+    // changed since the last paint.
+    if (element.tagName !== "IMG" && shouldPaintContainer(element)) {
+      pending.push(element);
+    }
+  });
+
+  collectCandidateImages(node, options.target).forEach((image) => {
+    const container = decorateImage(image, options);
+    if (container) {
+      pending.push(container);
+    }
+  });
+
+  return pending;
+};
+
+/**
+ * Initialize all Visionary images within a root element. Enhances images with a
+ * Blurhash URL `src` into a layered image placeholder.
  *
  * @param options - Configuration options
  * @returns Number of elements initialized
  */
 export const initVisionaryImages = (options: InitOptions = {}): number => {
-  const {
-    canvasSize = CANVAS_SIZE,
-    debug = false,
-    punch = BLURHASH_PUNCH,
-    root = document.body,
-  } = options;
+  const resolved = resolveOptions(options);
+  const root = resolveRoot(options.root);
 
-  const elements = root.querySelectorAll(
-    `[${ATTR_VISIONARY}]:not([${ATTR_INITIALIZED}])`
-  );
+  const pending = collectPending(root, resolved);
 
-  if (elements.length === 0) {
-    if (debug) {
+  if (pending.length === 0) {
+    if (resolved.debug) {
       logDebug("No uninitialized elements found");
     }
     return 0;
   }
 
-  const initOptions = { canvasSize, debug, punch };
+  paintPending(pending, resolved);
 
-  // Use requestAnimationFrame to batch rendering
-  requestAnimationFrame(() => {
-    elements.forEach((el) => initElement(el, initOptions));
-  });
-
-  if (debug) {
-    logDebug(`Queued ${elements.length} elements for init`);
+  if (resolved.debug) {
+    logDebug(`Queued ${pending.length} elements for init`);
   }
 
-  return elements.length;
+  return pending.length;
 };
 
 /**
- * Create a MutationObserver that automatically initializes new Visionary elements.
- * Useful for SPAs where elements are dynamically added to the DOM.
+ * Create a MutationObserver that automatically initializes new Visionary images.
  *
  * @param options - Configuration options
  * @returns MutationObserver instance (call .disconnect() to stop observing)
@@ -134,55 +376,48 @@ export const initVisionaryImages = (options: InitOptions = {}): number => {
 export const observeVisionaryImages = (
   options: InitOptions = {}
 ): MutationObserver => {
-  const {
-    canvasSize = CANVAS_SIZE,
-    debug = false,
-    punch = BLURHASH_PUNCH,
-    root = document.body,
-  } = options;
-
-  const initOptions = { canvasSize, debug, punch };
+  const resolved = resolveOptions(options);
+  const root = resolveRoot(options.root);
 
   // Initialize existing elements first
-  initVisionaryImages(options);
+  initVisionaryImages({ ...options, root });
 
   const observer = new MutationObserver((mutations) => {
-    let hasNewElements = false;
+    const pending: Element[] = [];
 
     mutations.forEach((mutation) => {
+      if (
+        mutation.type === "attributes" &&
+        mutation.target instanceof Element
+      ) {
+        pending.push(...collectPending(mutation.target, resolved));
+        return;
+      }
       mutation.addedNodes.forEach((node) => {
         if (!(node instanceof Element)) return;
-
-        // Check if the added node itself is a Visionary element
-        if (node.hasAttribute(ATTR_VISIONARY)) {
-          requestAnimationFrame(() => initElement(node, initOptions));
-          hasNewElements = true;
-        }
-
-        // Check descendants
-        const descendants = node.querySelectorAll(
-          `[${ATTR_VISIONARY}]:not([${ATTR_INITIALIZED}])`
-        );
-        if (descendants.length > 0) {
-          requestAnimationFrame(() => {
-            descendants.forEach((el) => initElement(el, initOptions));
-          });
-          hasNewElements = true;
-        }
+        pending.push(...collectPending(node, resolved));
       });
     });
 
-    if (debug && hasNewElements) {
-      logDebug("Initialized dynamically added elements");
+    if (pending.length === 0) {
+      return;
+    }
+
+    paintPending(pending, resolved);
+
+    if (resolved.debug) {
+      logDebug(`Initialized ${pending.length} newly added elements`);
     }
   });
 
   observer.observe(root, {
+    attributeFilter: ["src"],
+    attributes: true,
     childList: true,
     subtree: true,
   });
 
-  if (debug) {
+  if (resolved.debug) {
     logDebug("MutationObserver started");
   }
 

@@ -5,8 +5,18 @@ import {
 } from "blurhash-url";
 import { IMAGE_SIZES, ImageSizeToken } from "blurhash-url/constants";
 
-import { BG_ALPHA, CANVAS_SIZE, DEFAULT_IMAGE_SIZE } from "./constants";
+import {
+  BG_ALPHA,
+  CANVAS_SIZE,
+  DEFAULT_ENDPOINT,
+  DEFAULT_IMAGE_SIZE,
+} from "./constants";
 import { logDebug } from "./logger";
+import {
+  buildCanvasStyle,
+  buildContainerStyle,
+  buildImageStyle,
+} from "../style";
 import {
   createUrl,
   generateRgbaString,
@@ -20,13 +30,13 @@ import {
  * `blurhash-url` expects an absolute URL, so path-only inputs are parsed
  * against a temporary origin while preserving all supported option tokens.
  */
-const parsePathOnlyVisionaryUrl = (input: string) => {
+const parsePathOnlyBlurhashUrl = (input: string) => {
   if (!input.startsWith("/")) {
     return null;
   }
 
   try {
-    const absoluteUrl = new URL(input, "https://visionary.invalid");
+    const absoluteUrl = new URL(input, DEFAULT_ENDPOINT);
     return parseVisionaryString(absoluteUrl.toString());
   } catch {
     return null;
@@ -54,7 +64,7 @@ export interface RenderOptions {
   hideImageLayer?: boolean;
   /** Image loading attribute (default: "lazy") */
   loading?: "lazy" | "eager";
-  /** If specified, overrides the size specified in a Visionary URL */
+  /** If specified, overrides the size specified in a Blurhash URL */
   size?: ImageSizeToken;
 }
 
@@ -76,7 +86,7 @@ export interface RenderResult {
  * Render a Visionary image as an HTML string for SSR.
  * Outputs a div with data attributes, a canvas, and an img tag.
  *
- * @param imageSrc - Visionary URL or image src
+ * @param imageSrc - Blurhash URL or image src
  * @param options - Render options
  * @returns HTML string and parsed state
  */
@@ -113,24 +123,24 @@ export const renderVisionaryHTML = (
   }
 
   // Try to parse directly first
-  let visionaryData = parseVisionaryString(src);
+  let blurhashUrlData = parseVisionaryString(src);
 
   if (debug) {
-    logDebug("parseVisionaryString result:", visionaryData);
+    logDebug("parseVisionaryString result:", blurhashUrlData);
   }
 
   // `blurhash-url` requires absolute URLs, so normalize path-only inputs.
-  if (!visionaryData) {
-    visionaryData = parsePathOnlyVisionaryUrl(src);
+  if (!blurhashUrlData) {
+    blurhashUrlData = parsePathOnlyBlurhashUrl(src);
     if (debug) {
-      logDebug("parsePathOnlyVisionaryUrl result:", visionaryData);
+      logDebug("parsePathOnlyBlurhashUrl result:", blurhashUrlData);
     }
   }
 
-  // Fallback for non-Visionary URLs
-  if (!visionaryData) {
+  // Fallback for non-Blurhash URLs
+  if (!blurhashUrlData) {
     if (debug) {
-      logDebug("No visionary data found, using fallback img");
+      logDebug("No Blurhash URL data found, using fallback img");
     }
     return {
       html: `<img src="${escapeHtml(src)}" alt="${escapeHtml(
@@ -140,7 +150,7 @@ export const renderVisionaryHTML = (
     };
   }
 
-  const { fields, options: urlOptions } = visionaryData;
+  const { fields, options: urlOptions } = blurhashUrlData;
 
   if (fields.sourceWidth < 1 || fields.sourceHeight < 1) {
     return {
@@ -177,27 +187,28 @@ export const renderVisionaryHTML = (
   const arPaddingTop = `${arPercentage}%`;
 
   // Resolve the image src
-  let resolvedSrc = src;
+  let resolvedSrc: string;
 
-  /** Override src if Visionary field `url` is a URL */
-  const urlFieldAsURL = createUrl(fields.url);
-  if (urlFieldAsURL) {
-    resolvedSrc = urlFieldAsURL.toString();
-  }
-  // Preserve valid path-only URLs, including all serving option tokens.
-  else if (src.startsWith("/")) {
+  /** If the Visionary data `url` field is a valid URL, override the image src with it */
+  const parsedUrlFromField = createUrl(fields.url);
+
+  if (parsedUrlFromField) {
+    resolvedSrc = parsedUrlFromField.toString();
+  } else if (src.startsWith("/")) {
+    // if src is a valid path-only URL, preserve it (including any serving option tokens)
     resolvedSrc = src;
-  }
-  // If `src` is a Visionary Code and `url` is a file ID, generate a URL.
-  else if (!createUrl(src) && isBase64UrlEncoded(fields.url)) {
+  } else if (!createUrl(src) && isBase64UrlEncoded(fields.url)) {
+    // If src is a Visionary Code and the `url` is a file ID, generate a URL
     const generatedUrl = generateBlurhashUrl(fields, {
       endpoint,
       size: imageSize,
     });
-    if (generatedUrl) {
-      resolvedSrc = generatedUrl;
-    }
+    resolvedSrc = generatedUrl ?? src;
+  } else {
+    // Default fallback
+    resolvedSrc = src;
   }
+  /** If an endpoint is specified, update the origin accordingly */
   if (endpoint) {
     const endpointUrl = createUrl(endpoint);
     resolvedSrc =
@@ -225,43 +236,11 @@ export const renderVisionaryHTML = (
   };
 
   // Build inline styles
-  const containerStyle = [
-    "position: relative",
-    "width: 100%",
-    `max-width: ${maxWidth}px`,
-    `aspect-ratio: ${resizedAspectRatio}`,
-    backgroundColor ? `background-color: ${backgroundColor}` : "",
-    "overflow: hidden",
-  ]
-    .filter(Boolean)
-    .join("; ");
-
-  const canvasStyle = [
-    "position: absolute",
-    "top: 0",
-    "left: 0",
-    "width: 100%",
-    "height: 100%",
-    "object-fit: cover",
-  ].join("; ");
-
-  const imgStyle = [
-    "position: absolute",
-    "top: 0",
-    "left: 0",
-    "width: 100%",
-    "height: 100%",
-    "object-fit: cover",
-    hideImageLayer ? "display: none" : "",
-  ]
-    .filter(Boolean)
-    .join("; ");
+  const containerStyle = buildContainerStyle(state);
+  const canvasStyle = buildCanvasStyle();
+  const imgStyle = buildImageStyle(hideImageLayer);
 
   const classAttr = className ? ` class="${escapeHtml(className)}"` : "";
-  const blurhashAttr =
-    fields.blurhash && !disableBlurLayer
-      ? ` data-blurhash="${escapeHtml(fields.blurhash)}"`
-      : "";
 
   // Build canvas element (unless disabled)
   const canvasHtml = disableBlurLayer
@@ -275,7 +254,7 @@ export const renderVisionaryHTML = (
         alt
       )}" loading="${loading}" style="${imgStyle}" />`;
 
-  const html = `<div data-visionary${blurhashAttr}${classAttr} style="${containerStyle}">${canvasHtml}${imgHtml}</div>`;
+  const html = `<div data-visionary${classAttr} style="${containerStyle}" data-v7y>${canvasHtml}${imgHtml}</div>`;
 
   return { html, state };
 };
