@@ -211,7 +211,7 @@ describe("image decorating", () => {
 
     expect(warnSpy).toHaveBeenCalledOnce();
     expect(warnSpy.mock.calls[0]?.join(" ")).toContain(
-      "Invalid `target` selector"
+      "`target` selector is invalid"
     );
   });
 

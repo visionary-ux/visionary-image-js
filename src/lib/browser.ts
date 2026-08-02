@@ -120,6 +120,9 @@ const getContainerImageSource = (container: Element): string | null => {
   return getImageSource(image);
 };
 
+/**
+ * Check if a container should be painted based on its image source
+ */
 const shouldPaintContainer = (container: Element): boolean => {
   const src = getContainerImageSource(container);
   if (!src) {
@@ -208,11 +211,9 @@ const collectCandidateImages = (
 };
 
 /**
- * Decorate a bare `<img>` whose `src` carries a Visionary Code into the layered container
- * that `renderVisionaryHTML` renders.
- *
- * The author's `src` and `loading` attributes are preserved. Rhe image is already in flight
- * by the time this runs, so reassigning src would throw away that request.
+ * Decorate a bare `<img>` whose `src` carries a Visionary Code into a layered Visionary container that
+ * `renderVisionaryHTML` renders. The author's `src` and `loading` attributes are preserved. The image
+ * request is already in flight when this runs.
  *
  * @returns The container awaiting a blurhash paint, or null if there's nothing to paint
  */
@@ -225,7 +226,6 @@ const decorateImage = (
   if (!srcAttr) {
     return null;
   }
-  // The `src` property resolves path-only markup to an absolute URL.
   const normalizedSrc = image.src || srcAttr;
   const lastExaminedSrc = examinedImages.get(image);
   if (lastExaminedSrc === normalizedSrc) {
@@ -237,7 +237,7 @@ const decorateImage = (
     return null;
   }
 
-  // Omit images already owned by another renderer or already wrapped.
+  // Omit images already processed or owned by another renderer
   if (
     image.parentElement?.closest(`[${ATTR_OWNER}]`) ||
     image.parentElement?.closest(`[${ATTR_VISIONARY}]`)
@@ -245,7 +245,7 @@ const decorateImage = (
     return null;
   }
 
-  // Fast reject: Blurhash URL paths always begin with `/image/` (not merely contain it).
+  // Blurhash URL must start with `/image/`
   const srcUrl = createUrl(normalizedSrc);
   if (!srcUrl?.pathname.startsWith("/image/")) {
     return null;
@@ -290,8 +290,7 @@ const decorateImage = (
     logDebug("Image decorated", container);
   }
 
-  // Without a blurhash there's no canvas to paint, but the container still
-  // reserves the layout box and paints the background color.
+  // Without a blurhash the container still reserves the layout box and paints the background layer
   if (!state.blurhash) {
     paintedContainerSources.set(container, normalizedSrc);
     return null;
@@ -301,8 +300,7 @@ const decorateImage = (
 };
 
 /**
- * Collect containers awaiting a blurhash paint from `node` and its descendants, decorating
- * any bare images with Blurhash URLs found along the way.
+ * Collect containers awaiting a blurhash paint from `node` and its descendants
  */
 const collectPending = (node: Element, options: ResolvedOptions): Element[] => {
   const pending: Element[] = [];
@@ -321,8 +319,7 @@ const collectPending = (node: Element, options: ResolvedOptions): Element[] => {
   }
 
   containers.forEach((element) => {
-    // Only non-image nodes are valid SSR containers, and only when the source
-    // changed since the last paint.
+    // Only non-image nodes are valid SSR containers, only when the source changed since the last paint
     if (element.tagName !== "IMG" && shouldPaintContainer(element)) {
       pending.push(element);
     }
@@ -339,8 +336,8 @@ const collectPending = (node: Element, options: ResolvedOptions): Element[] => {
 };
 
 /**
- * Initialize all Visionary images within a root element. Enhances images with a
- * Blurhash URL `src` into a layered image placeholder.
+ * Initialize all Visionary images within a root element.
+ * Enhances images with a Blurhash URL `src` into a layered image placeholder.
  *
  * @param options - Configuration options
  * @returns Number of elements initialized

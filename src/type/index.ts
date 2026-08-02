@@ -47,8 +47,8 @@ export interface InitOptions {
   /** CSS selector indicating which images to render as Visionary images (default: "img") */
   target?: string;
   /**
-   * Paint blurhash canvases immediately in the current task instead of deferring
-   * paint work into the next `requestAnimationFrame` (default: false).
+   * Paint blurhash canvases immediately in the current task instead of deferring paint work into
+   * the next `requestAnimationFrame` (default: false).
    *
    * Useful for above-the-fold images where you want the blurhash placeholder to show up immediately */
   eagerCanvasPaint?: boolean;

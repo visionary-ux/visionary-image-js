@@ -4,21 +4,16 @@
  * Usage:
  *   <script src="visionary-autoload.js"></script>
  *
- * Load this from `<head>` so images are decorated as the parser reaches them, before the browser
- * lays them out. Loading it any later still renders placeholders, but the layout shift it exists
- * to prevent has already happened.
- *
  * Attributes:
  *   data-debug          - Enable debug logging
  *   data-once           - Initialize once at DOM ready instead of observing
  *   data-eager-canvas   - Paint blurhash canvases synchronously instead of deferring to requestAnimationFrame
- *   data-target="..."   - CSS selector indicating which images to render as Visionary images (default: "img")
+ *   data-target=".el"   - CSS selector indicating which images to render as Visionary images (default: "img")
  */
 
 import { initVisionaryImages, observeVisionaryImages } from "./browser";
 
-// `document.currentScript` only resolves while the script is executing, so
-// config has to be read here rather than inside a later callback
+// `document.currentScript` resolves while the script is executing; config should be read here
 const scriptTag = document.currentScript as HTMLScriptElement | null;
 
 const debug = scriptTag?.hasAttribute("data-debug") ?? false;
@@ -45,6 +40,5 @@ if (once) {
     initVisionaryImages(options);
   }
 } else {
-  // `document.body` may not exist yet when loaded from `<head>`
   observeVisionaryImages({ ...options, root: document.documentElement });
 }
