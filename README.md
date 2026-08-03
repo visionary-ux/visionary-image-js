@@ -2,12 +2,23 @@
 
 [![NPM version](https://img.shields.io/npm/v/visionary-image-js?color=beige)](https://www.npmjs.com/package/visionary-image-js) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/visionary-ux/visionary-image-js/.github%2Fworkflows%2Fci-cd-workflow.yml?branch=master)](https://github.com/visionary-ux/visionary-image-js/actions) [![NPM bundle size](https://img.shields.io/bundlephobia/minzip/visionary-image-js?color=blue)](https://bundlephobia.com/package/visionary-image-js) [![NPM Downloads](https://img.shields.io/npm/d18m/visionary-image-js?color=lightgray)](https://www.npmjs.com/package/visionary-image-js?activeTab=versions)
 
-Add Blurhash placeholders to any website. Point an `<img>` at a Blurhash URL, include the script, and the image gets a blur placeholder and a reserved layout box.
+Drop-in Blurhash placeholders for any website. Point an `<img>` at a Blurhash URL, include the script, and images get a blur preview with a reserved layout box — eliminating Cumulative Layout Shift (CLS) and improving [Core Web Vitals](https://developers.google.com/search/docs/appearance/core-web-vitals).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.visionary.cloud/image/VGVpcWpoQkJrRCExNTY2ITM3OCEyYzNjMzQhTDEzSjB0dDdYNXQ3aGFheW9mYXlRQ2F5ZTpheQ/lg/core-web-vitals-100-dark.jpg" />
+  <img src="https://cdn.visionary.cloud/image/OF9XODQ5OHJFdSE5OTYhMjIyIWY3ZmNmYSFMa1JwYXF4dW9meHVfTW9mZjZrQ3hialtheWpb/lg/core-web-vitals-100-light.jpg" alt="Example Lighthouse report showing scores of 100 across Performance, Accessibility, Best Practices, and SEO" width="640" />
+</picture>
+
+[See our PageSpeed Insights Report →](https://pagespeed.web.dev/analysis/https-visionary-cloud-gallery/w2oqqf6ldj?form_factor=desktop)
+
+Lighthouse filmstrip showing the three-layer load: background color → Blurhash → full image:
+
+![Lighthouse report loading stage filmstrip](https://github.com/user-attachments/assets/20fd15ad-6801-4105-b75d-bf12cc8c704e)
 
 ## Features
 
 - **No markup changes:** Any `<img>` with a [Blurhash URL](https://github.com/visionary-ux/blurhash-url) in its `src` is automatically upgraded.
-- **No layout shift:** Dimensions are read from the URL so space is reserved before page layout.
+- **Zero CLS:** Dimensions are read from the URL so space is reserved before layout — no Cumulative Layout Shift when the image loads.
 - **Works with dynamic pages:** New images and `src` updates are observed automatically (SPAs included).
 - **Server rendering:** Generate the same markup server-side for Hono, Express, and friends.
 - **Shared cache:** Each Blurhash is decoded once, even across multiple copies of the bundle.
@@ -21,7 +32,7 @@ npm install visionary-image-js
 
 ## Quick start
 
-Load the script from `<head>` without `defer` or `async`. It decorates each image as the HTML parser reaches it. It can run later, but layout shift may have occured.
+Load the script from `<head>` without `defer` or `async`. It decorates each image as the HTML parser reaches it. It can run later, but you may experience layout shift.
 
 ```html
 <head>
