@@ -1,7 +1,7 @@
 {
   "name": "visionary-image-js",
-  "version": "1.0.0",
-  "description": "Framework-agnostic client-side enhancement for Visionary images with blurhash placeholders.",
+  "version": "1.1.0",
+  "description": "Drop-in Blurhash placeholders for any website. Eliminate layout shift and improve Core Web Vitals — via script tag or SSR HTML.",
   "type": "module",
   "main": "./dist/visionary-image-js.cjs",
   "module": "./dist/visionary-image-js.js",

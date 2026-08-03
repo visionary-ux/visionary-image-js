@@ -12,5 +12,8 @@ export const CANVAS_SIZE = 24;
 /** If Visionary data is present without a specified resolution, default to `lg` (1280px) */
 export const DEFAULT_IMAGE_SIZE = ImageSizeToken.lg;
 
+/** Default CDN endpoint for Blurhash URLs */
+export const DEFAULT_ENDPOINT = "https://blurhash.link";
+
 /** Environment detection */
 export const IS_SSR = typeof document === "undefined";

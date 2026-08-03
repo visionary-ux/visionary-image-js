@@ -21,6 +21,7 @@ export {
   BG_ALPHA,
   BLURHASH_PUNCH,
   CANVAS_SIZE,
+  DEFAULT_ENDPOINT,
   DEFAULT_IMAGE_SIZE,
   IS_SSR,
 } from "./lib/constants";
@@ -37,7 +38,14 @@ export {
 export type { RGB } from "./lib/util";
 
 // Styles (for custom implementations)
-export { canvasStyles, containerStyles, imageStyles } from "./style";
+export {
+  buildCanvasStyle,
+  buildContainerStyle,
+  buildImageStyle,
+  canvasStyles,
+  containerStyles,
+  imageStyles,
+} from "./style";
 
 // Types
 export type {

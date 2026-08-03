@@ -13,7 +13,7 @@ const renderElement = (html: string): Element => {
 };
 
 describe(renderVisionaryHTML.name, () => {
-  test("renders a Visionary URL with its state and layers", () => {
+  test("renders a Blurhash URL with its state and layers", () => {
     const result = renderVisionaryHTML(TEST_VISIONARY_URL, {
       alt: "A test image",
       className: "hero",
@@ -27,9 +27,9 @@ describe(renderVisionaryHTML.name, () => {
       maxWidth: 228,
       src: TEST_VISIONARY_URL,
     });
+    expect(container.hasAttribute("data-v7y")).toBe(true);
     expect(container.hasAttribute("data-visionary")).toBe(true);
     expect(container.classList.contains("hero")).toBe(true);
-    expect(container.getAttribute("data-blurhash")).toBeTruthy();
     expect(canvas?.getAttribute("width")).toBe("24");
     expect(canvas?.getAttribute("height")).toBe("24");
     expect(image?.getAttribute("src")).toBe(TEST_VISIONARY_URL);
@@ -59,7 +59,7 @@ describe(renderVisionaryHTML.name, () => {
     [`/image/${TEST_VISIONARY_CODE}/download,sm,webp/image.png`, 228],
     [`/image/${TEST_VISIONARY_CODE}/image.avif`, 911],
   ])(
-    "extracts Visionary data from path-only URL %s",
+    "extracts Blurhash URL data from path-only URL %s",
     (path, expectedMaxWidth) => {
       const result = renderVisionaryHTML(path);
       const container = renderElement(result.html);
@@ -79,7 +79,6 @@ describe(renderVisionaryHTML.name, () => {
       }).html
     );
     expect(withoutBlur.querySelector("canvas")).toBeNull();
-    expect(withoutBlur.hasAttribute("data-blurhash")).toBe(false);
 
     const withoutImage = renderElement(
       renderVisionaryHTML(TEST_VISIONARY_URL, {
@@ -96,7 +95,7 @@ describe(renderVisionaryHTML.name, () => {
     expect(hiddenImage?.getAttribute("style")).toContain("display: none");
   });
 
-  test("falls back to an escaped img for non-Visionary input", () => {
+  test("falls back to an escaped img for non-Blurhash URL input", () => {
     const result = renderVisionaryHTML(
       "https://example.test/photo.jpg?x=1&y=2",
       { alt: `A "quoted" image` }
