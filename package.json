@@ -1,7 +1,7 @@
 {
   "name": "visionary-image-js",
-  "version": "1.1.0",
-  "description": "Drop-in Blurhash placeholders for any website. Eliminate layout shift and improve Core Web Vitals — via script tag or SSR HTML.",
+  "version": "1.1.1",
+  "description": "The easiest way to use Blurhash on any website. True-to-size, framework-agnostic placeholders that paint on the Critical Rendering Path and improve Core Web Vitals.",
   "type": "module",
   "main": "./dist/visionary-image-js.cjs",
   "module": "./dist/visionary-image-js.js",
@@ -54,7 +54,7 @@
     "types:validate": "attw --pack ."
   },
   "dependencies": {
-    "blurhash-url": "^1.4.0",
+    "blurhash-url": "1.4.1",
     "fast-blurhash": "1.2.0"
   },
   "devDependencies": {

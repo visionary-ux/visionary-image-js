@@ -4,5 +4,5 @@ minimumReleaseAge: 10080
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
-  - blurhash-url@1.4.0
-  - visionary-base64url@0.1.4
+  - blurhash-url
+  - visionary-base64url
