@@ -2,19 +2,17 @@
 
 [![NPM version](https://img.shields.io/npm/v/visionary-image-js?color=beige)](https://www.npmjs.com/package/visionary-image-js) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/visionary-ux/visionary-image-js/.github%2Fworkflows%2Fci-cd-workflow.yml?branch=master)](https://github.com/visionary-ux/visionary-image-js/actions) [![NPM bundle size](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdeno.bundlejs.com%2F%3Fq%3Dvisionary-image-js&query=%24.size.size&label=bundle%20size&color=blue)](https://bundlejs.com/?q=visionary-image-js) [![NPM Downloads](https://img.shields.io/npm/d18m/visionary-image-js?color=lightgray)](https://www.npmjs.com/package/visionary-image-js?activeTab=versions)
 
-Framework-agnostic Blurhash placeholders that reserve image layout space, paint early, and improve [Core Web Vitals](https://developers.google.com/search/docs/appearance/core-web-vitals) — via script tag or SSR HTML.
-
-Point an `<img>` at a Blurhash URL and include the script. Visionary reserves a responsive layout box, paints a Blurhash preview, then reveals the full image.
+Instant Blurhash placeholders for any website, with stable dimensions from first paint to prevent Cumulative Layout Shift (CLS) and improve [Core Web Vitals](https://developers.google.com/search/docs/appearance/core-web-vitals).
 
 ## Features
 
-- **Easy Blurhash:** Any `<img>` with a [Blurhash URL](https://github.com/visionary-ux/blurhash-url) in its `src` is automatically upgraded.
-- **Layout stability:** Dimensions are read from the URL, reserving space before layout and eliminating image-related Cumulative Layout Shift (CLS).
+- **Easy Blurhash:** Add the script and give any `<img>` a [Blurhash URL](https://github.com/visionary-ux/blurhash-url). Visionary handles the rest.
+- **Self-contained URLs:** [`blurhash-url`](https://github.com/visionary-ux/blurhash-url) carries all placeholder data with the image URL—no API or database schema changes required.
+- **Layout stability:** Embedded dimensions preserve the image’s aspect ratio before it loads, preventing Cumulative Layout Shift (CLS).
 - **Lightning-fast previews:** Placeholders can paint on the browser's Critical Rendering Path, at First Contentful Paint and before `DOMContentLoaded`.
 - **Dynamic-page ready:** New images and `src` updates are observed automatically, including in SPAs.
 - **Server rendering:** Generate the same markup server-side for Hono, Express, and similar frameworks.
-- **Shared cache:** Each Blurhash is decoded once, even across multiple copies of the bundle.
-- **Developer friendly:** Written in TypeScript and unit tested.
+- **Runtime coverage:** TypeScript-first and tested in Node.js, Chromium, and Cloudflare Workers, including SSR.
 - **Search performance:** Enhance search ranking potential by improving Core Web Vitals scores.
   > "We highly recommend site owners achieve good Core Web Vitals for success with Search" — [Google Search Central](https://developers.google.com/search/docs/appearance/core-web-vitals)
 
