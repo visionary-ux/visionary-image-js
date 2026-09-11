@@ -1,7 +1,7 @@
 {
   "name": "visionary-image-js",
-  "version": "1.1.0",
-  "description": "Drop-in Blurhash placeholders for any website. Eliminate layout shift and improve Core Web Vitals — via script tag or SSR HTML.",
+  "version": "1.1.1",
+  "description": "The easiest way to use Blurhash on any website. True-to-size, framework-agnostic placeholders that paint on the Critical Rendering Path and improve Core Web Vitals.",
   "type": "module",
   "main": "./dist/visionary-image-js.cjs",
   "module": "./dist/visionary-image-js.js",
@@ -49,20 +49,25 @@
     "clean": "rimraf dist/",
     "dev": "vite",
     "test": "vitest run",
+    "test:browser": "pnpm run build && vitest run --config test/config/vitest.browser.config.ts",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
+    "test:worker": "pnpm run build && vitest run --config test/config/vitest.worker.config.ts",
     "types:validate": "attw --pack ."
   },
   "dependencies": {
-    "blurhash-url": "^1.4.0",
+    "blurhash-url": "1.4.1",
     "fast-blurhash": "1.2.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@cloudflare/vitest-plugin": "1.1.2",
     "@microsoft/api-extractor": "^7.58.11",
     "@types/node": "24.13.2",
+    "@vitest/browser-playwright": "4.1.10",
     "@vitest/coverage-v8": "4.1.10",
     "jsdom": "^29.1.1",
+    "playwright": "1.62.1",
     "rimraf": "5.0.10",
     "typescript": "5.5.4",
     "unplugin-dts": "^1.0.3",
