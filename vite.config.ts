@@ -1,6 +1,6 @@
 import { resolve } from "path";
 import dts from "unplugin-dts/vite";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 // Main library build
 export default defineConfig({
@@ -23,6 +23,7 @@ export default defineConfig({
   ],
   test: {
     environment: "jsdom",
+    exclude: [...configDefaults.exclude, "test/browser/**", "test/worker/**"],
     globals: true,
   },
 });

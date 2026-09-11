@@ -12,6 +12,28 @@ permissions:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22, 24]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.5.1
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run types:validate
+      - run: pnpm test
+
+  browser:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
@@ -25,6 +47,22 @@ jobs:
           version: 11.5.1
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run build
-      - run: pnpm run types:validate
-      - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm run test:browser
+
+  workers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.5.1
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:worker

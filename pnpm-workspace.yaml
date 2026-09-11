@@ -3,6 +3,7 @@ packages:
 minimumReleaseAge: 10080
 allowBuilds:
   esbuild: true
+  workerd: true
 minimumReleaseAgeExclude:
   - blurhash-url
   - visionary-base64url

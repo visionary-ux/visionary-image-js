@@ -49,8 +49,10 @@
     "clean": "rimraf dist/",
     "dev": "vite",
     "test": "vitest run",
+    "test:browser": "pnpm run build && vitest run --config test/config/vitest.browser.config.ts",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
+    "test:worker": "pnpm run build && vitest run --config test/config/vitest.worker.config.ts",
     "types:validate": "attw --pack ."
   },
   "dependencies": {
@@ -59,10 +61,13 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@cloudflare/vitest-plugin": "1.1.2",
     "@microsoft/api-extractor": "^7.58.11",
     "@types/node": "24.13.2",
+    "@vitest/browser-playwright": "4.1.10",
     "@vitest/coverage-v8": "4.1.10",
     "jsdom": "^29.1.1",
+    "playwright": "1.62.1",
     "rimraf": "5.0.10",
     "typescript": "5.5.4",
     "unplugin-dts": "^1.0.3",
