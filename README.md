@@ -127,6 +127,46 @@ const { html, state } = renderVisionaryHTML(blurhashUrl, {
 // state → parsed values such as aspectRatio, backgroundColor, blurhash code
 ```
 
+For the above-the-fold (LCP) image, load it eagerly at high priority:
+
+```typescript
+renderVisionaryHTML(heroUrl, { loading: "eager", fetchPriority: "high" });
+```
+
+### Inline the autoload script
+
+SSR markup still needs the autoload script to paint the Blurhash canvas. Inline it in `<head>` to avoid a render-blocking request, so placeholders paint as the parser reaches them:
+
+```typescript
+import { renderAutoloadScript } from "visionary-image-js/server";
+
+const script = renderAutoloadScript({ eagerCanvasPaint: true });
+// renders: `<script data-eager-canvas>(function(){…})()</script>`
+```
+
+This adds ~6 KB (gzip) to each HTML response in exchange for one fewer request.
+
+#### Hono
+
+```tsx
+import { raw } from "hono/html";
+import { renderAutoloadScript } from "visionary-image-js/server";
+
+<head>{raw(renderAutoloadScript({ eagerCanvasPaint: true }))}</head>;
+```
+
+#### Astro
+
+```astro
+---
+import { renderAutoloadScript } from "visionary-image-js/server";
+---
+
+<head>
+  <Fragment set:html={renderAutoloadScript({ eagerCanvasPaint: true })} />
+</head>
+```
+
 ## API
 
 ### `initVisionaryImages(options?)`
@@ -151,9 +191,22 @@ Options:
 - `disableBlurLayer` — Omit the blur (canvas) layer
 - `disableImageLayer` — Omit the image layer
 - `endpoint` — Serve images from your own domain
+- `fetchPriority` — `"high"`, `"low"`, or `"auto"` (omitted by default)
 - `hideImageLayer` — Hide the image via CSS (reveals the blur underneath)
 - `loading` — `"lazy"` (default) or `"eager"`
 - `size` — Override the size token from the Blurhash URL
+
+### `renderAutoloadScript(options?)`
+
+Imported from `visionary-image-js/server`. Returns the autoload script as an inline `<script>` HTML string. The raw source is also exported as `AUTOLOAD_SCRIPT`.
+
+Options:
+
+- `debug` — Enable debug logging (`data-debug`)
+- `eagerCanvasPaint` — Paint canvases synchronously (`data-eager-canvas`)
+- `nonce` — CSP nonce for the inline script
+- `once` — Initialize once instead of observing (`data-once`)
+- `target` — CSS selector for images to decorate (`data-target`)
 
 ### `computeImageState(src, options?)`
 

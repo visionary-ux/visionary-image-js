@@ -1,6 +1,6 @@
 {
   "name": "visionary-image-js",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "The easiest way to use Blurhash on any website. True-to-size, framework-agnostic placeholders that paint on the Critical Rendering Path and improve Core Web Vitals.",
   "type": "module",
   "main": "./dist/visionary-image-js.cjs",
@@ -26,12 +26,25 @@
         "types": "./dist/autoload.d.cts",
         "default": "./dist/visionary-autoload.cjs"
       }
+    },
+    "./server": {
+      "import": {
+        "types": "./dist/server.d.ts",
+        "default": "./dist/server.js"
+      },
+      "require": {
+        "types": "./dist/server.d.cts",
+        "default": "./dist/server.cjs"
+      }
     }
   },
   "typesVersions": {
     "*": {
       "autoload": [
         "./dist/autoload.d.ts"
+      ],
+      "server": [
+        "./dist/server.d.ts"
       ]
     }
   },
@@ -45,7 +58,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "pnpm run clean && tsc --noEmit && vite build && vite build --config vite.config.autoload.ts",
+    "build": "pnpm run clean && tsc --noEmit && vite build && vite build --config vite.config.autoload.ts && vite build --config vite.config.server.ts",
     "clean": "rimraf dist/",
     "dev": "vite",
     "test": "vitest run",

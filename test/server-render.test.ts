@@ -35,6 +35,26 @@ describe(renderVisionaryHTML.name, () => {
     expect(image?.getAttribute("src")).toBe(TEST_VISIONARY_URL);
     expect(image?.getAttribute("alt")).toBe("A test image");
     expect(image?.getAttribute("loading")).toBe("lazy");
+    expect(image?.hasAttribute("fetchpriority")).toBe(false);
+  });
+
+  test("renders fetchpriority on the image layer and fallback image", () => {
+    const rendered = renderElement(
+      renderVisionaryHTML(TEST_VISIONARY_URL, {
+        fetchPriority: "high",
+        loading: "eager",
+      }).html
+    );
+    const image = rendered.querySelector("img");
+    expect(image?.getAttribute("fetchpriority")).toBe("high");
+    expect(image?.getAttribute("loading")).toBe("eager");
+
+    const fallback = renderElement(
+      renderVisionaryHTML("https://example.com/photo.jpg", {
+        fetchPriority: "low",
+      }).html
+    );
+    expect(fallback.getAttribute("fetchpriority")).toBe("low");
   });
 
   test("renders standalone codes with a custom endpoint and options", () => {

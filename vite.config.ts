@@ -2,6 +2,8 @@ import { resolve } from "path";
 import dts from "unplugin-dts/vite";
 import { configDefaults, defineConfig } from "vitest/config";
 
+import { autoloadSource } from "./vite.autoload-source";
+
 // Main library build
 export default defineConfig({
   build: {
@@ -16,6 +18,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    autoloadSource(),
     dts({
       bundleTypes: true,
       outDirs: ["dist", { dir: "dist", moduleFormat: "cjs" }],

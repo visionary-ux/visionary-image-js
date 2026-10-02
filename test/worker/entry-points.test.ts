@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 
+import { renderAutoloadScript } from "../../dist/server.js";
 import {
   decodeWithCache,
   IS_SSR,
@@ -32,6 +33,13 @@ describe("Cloudflare Workers runtime", () => {
     expect(result.state?.src).toBe(TEST_VISIONARY_URL);
     expect(result.html).toContain("data-visionary");
     expect(result.html).toContain('alt="Worker-rendered image"');
+  });
+
+  test("renders the inline autoload script from the server entry point", () => {
+    const html = renderAutoloadScript({ eagerCanvasPaint: true });
+
+    expect(html).toMatch(/^<script data-eager-canvas>\(function\(\)\{/);
+    expect(html).toMatch(/<\/script>$/);
   });
 
   test("decodes and caches Blurhash pixels without Node.js APIs", () => {
