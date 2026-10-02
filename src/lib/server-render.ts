@@ -6,17 +6,17 @@ import {
 import { IMAGE_SIZES, ImageSizeToken } from "blurhash-url/constants";
 
 import {
+  buildCanvasStyle,
+  buildContainerStyle,
+  buildImageStyle,
+} from "../style";
+import {
   BG_ALPHA,
   CANVAS_SIZE,
   DEFAULT_ENDPOINT,
   DEFAULT_IMAGE_SIZE,
 } from "./constants";
 import { logDebug } from "./logger";
-import {
-  buildCanvasStyle,
-  buildContainerStyle,
-  buildImageStyle,
-} from "../style";
 import {
   createUrl,
   generateRgbaString,
@@ -60,6 +60,8 @@ export interface RenderOptions {
   disableImageLayer?: boolean;
   /** Custom endpoint for image URLs */
   endpoint?: string;
+  /** Image `fetchpriority` attribute, e.g. "high" for the LCP image (omitted by default) */
+  fetchPriority?: "high" | "low" | "auto";
   /** Hide the image layer via CSS (reveals blur layer underneath) */
   hideImageLayer?: boolean;
   /** Image loading attribute (default: "lazy") */
@@ -103,10 +105,16 @@ export const renderVisionaryHTML = (
     disableBlurLayer = false,
     disableImageLayer = false,
     endpoint,
+    fetchPriority,
     hideImageLayer = false,
     loading = "lazy",
     size: userSize,
   } = options;
+
+  const loadingAttrs = renderAttributes({
+    fetchpriority: fetchPriority,
+    loading,
+  });
 
   // Trim whitespace from input
   const src = imageSrc?.trim() ?? "";
@@ -145,7 +153,7 @@ export const renderVisionaryHTML = (
     return {
       html: `<img src="${escapeHtml(src)}" alt="${escapeHtml(
         alt
-      )}" loading="${loading}" />`,
+      )}" ${loadingAttrs} />`,
       state: null,
     };
   }
@@ -156,7 +164,7 @@ export const renderVisionaryHTML = (
     return {
       html: `<img src="${escapeHtml(src)}" alt="${escapeHtml(
         alt
-      )}" loading="${loading}" />`,
+      )}" ${loadingAttrs} />`,
       state: null,
     };
   }
@@ -252,12 +260,22 @@ export const renderVisionaryHTML = (
     ? ""
     : `<img src="${escapeHtml(resolvedSrc)}" alt="${escapeHtml(
         alt
-      )}" loading="${loading}" style="${imgStyle}" />`;
+      )}" ${loadingAttrs} style="${imgStyle}" />`;
 
   const html = `<div data-visionary${classAttr} style="${containerStyle}" data-v7y>${canvasHtml}${imgHtml}</div>`;
 
   return { html, state };
 };
+
+/**
+ * Render HTML attributes as `key="value"` pairs (omit undefined)
+ */
+const renderAttributes = (attrs: Record<string, string | undefined>): string =>
+  Object.entries(attrs)
+    .flatMap(([key, value]) =>
+      value === undefined ? [] : [`${key}="${escapeHtml(value)}"`]
+    )
+    .join(" ");
 
 /**
  * Escape HTML special characters
