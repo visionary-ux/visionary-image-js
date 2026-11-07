@@ -69,7 +69,7 @@
     "types:validate": "attw --pack ."
   },
   "dependencies": {
-    "blurhash-url": "1.4.1",
+    "blurhash-url": "1.5.0",
     "fast-blurhash": "1.2.0"
   },
   "devDependencies": {
