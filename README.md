@@ -19,8 +19,8 @@ Instant Blurhash placeholders for any website, with stable dimensions from first
 ### Lighthouse Performance
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.visionary.cloud/image/VGVpcWpoQkJrRCExNTY2ITM3OCEyYzNjMzQhTDEzSjB0dDdYNXQ3aGFheW9mYXlRQ2F5ZTpheQ/lg/core-web-vitals-100-dark.jpg" />
-  <img src="https://cdn.visionary.cloud/image/OF9XODQ5OHJFdSE5OTYhMjIyIWY3ZmNmYSFMa1JwYXF4dW9meHVfTW9mZjZrQ3hialtheWpb/lg/core-web-vitals-100-light.jpg" alt="Example Lighthouse report showing scores of 100 across Performance, Accessibility, Best Practices, and SEO" width="640" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.visionary.cloud/image/VGVpcWpoQkJrRB8xNTY2HzM3OB8yYzNjMzQfTDEzSjB0dDdYNXQ3aGFheW9mYXlRQ2F5ZTpheQ/lg/core-web-vitals-100-dark.jpg" />
+  <img src="https://cdn.visionary.cloud/image/OF9XODQ5OHJFdR85OTYfMjIyH2Y3ZmNmYR9Ma1JwYXF4dW9meHVfTW9mZjZrQ3hialtheWpb/lg/core-web-vitals-100-light.jpg" alt="Example Lighthouse report showing scores of 100 across Performance, Accessibility, Best Practices, and SEO" width="640" />
 </picture>
 
 [See our PageSpeed Insights Report →](https://pagespeed.web.dev/analysis/https-visionary-cloud-gallery/qzhp02vuxj?form_factor=desktop)
@@ -46,7 +46,7 @@ Load the script from `<head>` without `defer` or `async`. It decorates each imag
 </head>
 <body>
   <img
-    src="https://blurhash.link/image/aW1nIzQyITk2MCE3MjAhODY5NmFjIUFVRlpULiVMX04lMQ/photo.jpg"
+    src="https://blurhash.link/image/aW1nIzQyHzk2MB83MjAfODY5NmFjH0FVRlpULiVMX04lMQ/photo.jpg"
   />
 </body>
 ```

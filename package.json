@@ -1,6 +1,6 @@
 {
   "name": "visionary-image-js",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "The easiest way to use Blurhash on any website. True-to-size, framework-agnostic placeholders that paint on the Critical Rendering Path and improve Core Web Vitals.",
   "type": "module",
   "main": "./dist/visionary-image-js.cjs",
@@ -69,7 +69,7 @@
     "types:validate": "attw --pack ."
   },
   "dependencies": {
-    "blurhash-url": "1.4.1",
+    "blurhash-url": "1.5.0",
     "fast-blurhash": "1.2.0"
   },
   "devDependencies": {
